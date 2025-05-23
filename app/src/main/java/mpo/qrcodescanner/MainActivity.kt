@@ -14,11 +14,15 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import mpo.qrcodescanner.ads.AdsManager
+import mpo.qrcodescanner.ui.home.HomeScreen
 import mpo.qrcodescanner.ui.scanner.ScannerScreen
 import mpo.qrcodescanner.ui.scanner.ScannerViewModel
 import mpo.qrcodescanner.ui.theme.QRCodeScannerTheme
 
 class MainActivity : ComponentActivity() {
+    private lateinit var adsManager: AdsManager
+    
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { isGranted ->
@@ -34,6 +38,9 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        
+        adsManager = AdsManager(this)
+
         setContent {
             QRCodeScannerTheme {
                 Surface(
@@ -42,8 +49,21 @@ class MainActivity : ComponentActivity() {
                 ) {
                     val navController = rememberNavController()
                     val scannerViewModel: ScannerViewModel = viewModel()
+
+                    LaunchedEffect(Unit) {
+                        // Show initial interstitial ad
+                        adsManager.showInitialInterstitialAd(this@MainActivity)
+                    }
                     
-                    NavHost(navController = navController, startDestination = "scanner") {
+                    NavHost(navController = navController, startDestination = "home") {
+                        composable("home") {
+                            HomeScreen(
+                                onScanClick = { navController.navigate("scanner") },
+                                onHistoryClick = { /* TODO: Implement history navigation */ },
+                                onPremiumClick = { /* TODO: Implement premium navigation */ },
+                                onSettingsClick = { /* TODO: Implement settings navigation */ }
+                            )
+                        }
                         composable("scanner") {
                             ScannerScreen(
                                 viewModel = scannerViewModel,

@@ -61,6 +61,7 @@ dependencies {
     implementation("androidx.camera:camera-camera2:${cameraxVersion}")
     implementation("androidx.camera:camera-lifecycle:${cameraxVersion}")
     implementation("androidx.camera:camera-view:${cameraxVersion}")
+    implementation("com.google.guava:guava:31.1-android")
     
     // ML Kit for barcode scanning
     implementation("com.google.mlkit:barcode-scanning:17.2.0")
@@ -73,6 +74,9 @@ dependencies {
     
     // Navigation
     implementation("androidx.navigation:navigation-compose:2.7.7")
+    
+    // Google Mobile Ads
+    implementation("com.google.android.gms:play-services-ads:22.6.0")
     
     // Testing dependencies
     testImplementation(libs.junit)
