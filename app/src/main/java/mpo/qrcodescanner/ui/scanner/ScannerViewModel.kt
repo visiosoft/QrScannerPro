@@ -2,46 +2,55 @@ package mpo.qrcodescanner.ui.scanner
 
 import android.app.Application
 import android.content.Context
-import android.media.MediaPlayer
 import android.os.Build
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.os.VibratorManager
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import mpo.qrcodescanner.data.QRCodeScan
-import mpo.qrcodescanner.data.QRCodeDatabase
-import java.util.Date
+import mpo.qrcodescanner.data.AppDatabase
+import mpo.qrcodescanner.data.ScanRepository
+import mpo.qrcodescanner.data.ScanResult
 
 data class ScannerState(
-    val lastScannedCode: QRCodeScan? = null,
-    val isLoading: Boolean = false,
+    val lastScannedCode: ScannedCode? = null,
     val error: String? = null,
     val isFlashlightOn: Boolean = false
 )
 
-class ScannerViewModel(application: Application) : AndroidViewModel(application) {
-    private val database = QRCodeDatabase.getDatabase(application)
-    private val qrCodeDao = database.qrCodeDao()
+data class ScannedCode(
+    val content: String,
+    val type: String
+)
 
+class ScannerViewModel(application: Application) : AndroidViewModel(application) {
+    private val repository: ScanRepository
     private val _state = MutableStateFlow(ScannerState())
-    val state: StateFlow<ScannerState> = _state.asStateFlow()
+    val state = _state.asStateFlow()
+
+    var isFlashlightOn by mutableStateOf(false)
+        private set
+
+    init {
+        val dao = AppDatabase.getDatabase(application).scanResultDao()
+        repository = ScanRepository(dao)
+    }
 
     fun onQRCodeDetected(content: String, type: String) {
         viewModelScope.launch {
             try {
-                val scan = QRCodeScan(
-                    content = content,
-                    type = type,
-                    timestamp = Date()
-                )
-                qrCodeDao.insert(scan)
+                // Save to database
+                repository.insert(ScanResult(content = content, type = type))
+                
+                // Update UI state
                 _state.value = _state.value.copy(
-                    lastScannedCode = scan,
+                    lastScannedCode = ScannedCode(content, type),
                     error = null
                 )
                 
@@ -63,9 +72,8 @@ class ScannerViewModel(application: Application) : AndroidViewModel(application)
     }
 
     fun toggleFlashlight() {
-        _state.value = _state.value.copy(
-            isFlashlightOn = !_state.value.isFlashlightOn
-        )
+        isFlashlightOn = !isFlashlightOn
+        _state.value = _state.value.copy(isFlashlightOn = isFlashlightOn)
     }
 
     private fun provideHapticFeedback() {

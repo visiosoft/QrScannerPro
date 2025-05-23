@@ -38,6 +38,9 @@ android {
     buildFeatures {
         compose = true
     }
+    composeOptions {
+        kotlinCompilerExtensionVersion = "1.5.8"
+    }
 }
 
 dependencies {
@@ -45,6 +48,7 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
     
     // Compose dependencies
     implementation(platform(libs.androidx.compose.bom))
@@ -66,7 +70,7 @@ dependencies {
     // ML Kit for barcode scanning
     implementation("com.google.mlkit:barcode-scanning:17.2.0")
     
-    // Room for local database storage
+    // Room dependencies
     val roomVersion = "2.6.1"
     implementation("androidx.room:room-runtime:$roomVersion")
     implementation("androidx.room:room-ktx:$roomVersion")

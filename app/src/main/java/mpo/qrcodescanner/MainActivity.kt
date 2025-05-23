@@ -18,6 +18,7 @@ import mpo.qrcodescanner.ads.AdsManager
 import mpo.qrcodescanner.ui.home.HomeScreen
 import mpo.qrcodescanner.ui.scanner.ScannerScreen
 import mpo.qrcodescanner.ui.scanner.ScannerViewModel
+import mpo.qrcodescanner.ui.history.HistoryScreen
 import mpo.qrcodescanner.ui.theme.QRCodeScannerTheme
 
 class MainActivity : ComponentActivity() {
@@ -32,7 +33,6 @@ class MainActivity : ComponentActivity() {
                 "Camera permission is required to scan QR codes",
                 Toast.LENGTH_LONG
             ).show()
-            finish()
         }
     }
 
@@ -48,10 +48,8 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     val navController = rememberNavController()
-                    val scannerViewModel: ScannerViewModel = viewModel()
 
                     LaunchedEffect(Unit) {
-                        // Show initial interstitial ad
                         adsManager.showInitialInterstitialAd(this@MainActivity)
                     }
                     
@@ -59,18 +57,22 @@ class MainActivity : ComponentActivity() {
                         composable("home") {
                             HomeScreen(
                                 onScanClick = { navController.navigate("scanner") },
-                                onHistoryClick = { /* TODO: Implement history navigation */ },
+                                onHistoryClick = { navController.navigate("history") },
                                 onPremiumClick = { /* TODO: Implement premium navigation */ },
                                 onSettingsClick = { /* TODO: Implement settings navigation */ }
                             )
                         }
                         composable("scanner") {
+                            val scannerViewModel: ScannerViewModel = viewModel()
                             ScannerScreen(
                                 viewModel = scannerViewModel,
                                 onPermissionDenied = {
                                     requestPermissionLauncher.launch(Manifest.permission.CAMERA)
                                 }
                             )
+                        }
+                        composable("history") {
+                            HistoryScreen()
                         }
                     }
                 }

@@ -1,15 +1,18 @@
 package mpo.qrcodescanner.ui.scanner
 
 import android.Manifest
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
 import android.content.pm.PackageManager
 import android.util.Size
+import android.widget.Toast
 import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.FlashOff
-import androidx.compose.material.icons.outlined.FlashOn
+import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -86,14 +89,42 @@ fun ScannerScreen(
                 onDismissRequest = { viewModel.clearLastScannedCode() },
                 title = { Text("QR Code Detected") },
                 text = {
-                    Column {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
                         Text("Type: ${scan.type}")
                         Text("Content: ${scan.content}")
                     }
                 },
                 confirmButton = {
-                    TextButton(onClick = { viewModel.clearLastScannedCode() }) {
-                        Text("Continue Scanning")
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        // Copy button
+                        TextButton(
+                            onClick = {
+                                val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                                val clip = ClipData.newPlainText("QR Code Content", scan.content)
+                                clipboard.setPrimaryClip(clip)
+                                Toast.makeText(context, "Content copied to clipboard", Toast.LENGTH_SHORT).show()
+                            }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Outlined.ContentCopy,
+                                contentDescription = "Copy",
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text("Copy")
+                        }
+
+                        // Continue button
+                        TextButton(
+                            onClick = { viewModel.clearLastScannedCode() }
+                        ) {
+                            Text("Continue Scanning")
+                        }
                     }
                 }
             )
