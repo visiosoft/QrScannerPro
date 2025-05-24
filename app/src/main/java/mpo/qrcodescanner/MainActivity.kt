@@ -20,6 +20,7 @@ import mpo.qrcodescanner.ui.scanner.ScannerScreen
 import mpo.qrcodescanner.ui.scanner.ScannerViewModel
 import mpo.qrcodescanner.ui.history.HistoryScreen
 import mpo.qrcodescanner.ui.theme.QRCodeScannerTheme
+import mpo.qrcodescanner.ui.subscription.SubscriptionScreen
 
 class MainActivity : ComponentActivity() {
     private lateinit var adsManager: AdsManager
@@ -58,7 +59,7 @@ class MainActivity : ComponentActivity() {
                             HomeScreen(
                                 onScanClick = { navController.navigate("scanner") },
                                 onHistoryClick = { navController.navigate("history") },
-                                onPremiumClick = { /* TODO: Implement premium navigation */ },
+                                onPremiumClick = { navController.navigate("subscription") },
                                 onSettingsClick = { /* TODO: Implement settings navigation */ }
                             )
                         }
@@ -73,6 +74,11 @@ class MainActivity : ComponentActivity() {
                         }
                         composable("history") {
                             HistoryScreen()
+                        }
+                        composable("subscription") {
+                            SubscriptionScreen(
+                                onNavigateBack = { navController.navigateUp() }
+                            )
                         }
                     }
                 }
