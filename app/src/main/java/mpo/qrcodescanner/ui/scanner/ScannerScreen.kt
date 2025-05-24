@@ -4,7 +4,9 @@ import android.Manifest
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.util.Size
 import android.widget.Toast
 import androidx.camera.core.*
@@ -69,18 +71,34 @@ fun ScannerScreen(
             // Scanner overlay
             ScannerOverlay()
             
-            // Flashlight toggle
-            FilledIconButton(
-                onClick = { viewModel.toggleFlashlight() },
+            // Control buttons row
+            Row(
                 modifier = Modifier
                     .align(Alignment.TopEnd)
-                    .padding(16.dp)
+                    .padding(16.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Icon(
-                    imageVector = if (state.isFlashlightOn) Icons.Outlined.FlashOn else Icons.Outlined.FlashOff,
-                    contentDescription = if (state.isFlashlightOn) "Turn off flashlight" else "Turn on flashlight",
-                    tint = MaterialTheme.colorScheme.onPrimary
-                )
+                // Sound toggle button
+                FilledIconButton(
+                    onClick = { viewModel.toggleSound() }
+                ) {
+                    Icon(
+                        imageVector = if (state.isSoundEnabled) Icons.Outlined.VolumeUp else Icons.Outlined.VolumeOff,
+                        contentDescription = if (state.isSoundEnabled) "Disable sound" else "Enable sound",
+                        tint = MaterialTheme.colorScheme.onPrimary
+                    )
+                }
+                
+                // Flashlight toggle
+                FilledIconButton(
+                    onClick = { viewModel.toggleFlashlight() }
+                ) {
+                    Icon(
+                        imageVector = if (state.isFlashlightOn) Icons.Outlined.FlashOn else Icons.Outlined.FlashOff,
+                        contentDescription = if (state.isFlashlightOn) "Turn off flashlight" else "Turn on flashlight",
+                        tint = MaterialTheme.colorScheme.onPrimary
+                    )
+                }
             }
         }
 
@@ -119,11 +137,26 @@ fun ScannerScreen(
                             Text("Copy")
                         }
 
-                        // Continue button
-                        TextButton(
-                            onClick = { viewModel.clearLastScannedCode() }
-                        ) {
-                            Text("Continue Scanning")
+                        // Open URL button (only shown for URLs)
+                        if (scan.type == "URL") {
+                            TextButton(
+                                onClick = {
+                                    try {
+                                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(scan.content))
+                                        context.startActivity(intent)
+                                    } catch (e: Exception) {
+                                        Toast.makeText(context, "Could not open URL", Toast.LENGTH_SHORT).show()
+                                    }
+                                }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Outlined.OpenInBrowser,
+                                    contentDescription = "Open URL",
+                                    modifier = Modifier.size(18.dp)
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text("Open URL")
+                            }
                         }
                     }
                 }

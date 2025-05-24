@@ -2,6 +2,9 @@ package mpo.qrcodescanner.ui.scanner
 
 import android.app.Application
 import android.content.Context
+import android.media.MediaPlayer
+import android.media.ToneGenerator
+import android.media.AudioManager
 import android.os.Build
 import android.os.VibrationEffect
 import android.os.Vibrator
@@ -21,7 +24,8 @@ import mpo.qrcodescanner.data.ScanResult
 data class ScannerState(
     val lastScannedCode: ScannedCode? = null,
     val error: String? = null,
-    val isFlashlightOn: Boolean = false
+    val isFlashlightOn: Boolean = false,
+    val isSoundEnabled: Boolean = true
 )
 
 data class ScannedCode(
@@ -33,6 +37,7 @@ class ScannerViewModel(application: Application) : AndroidViewModel(application)
     private val repository: ScanRepository
     private val _state = MutableStateFlow(ScannerState())
     val state = _state.asStateFlow()
+    private var toneGenerator: ToneGenerator? = null
 
     var isFlashlightOn by mutableStateOf(false)
         private set
@@ -40,6 +45,15 @@ class ScannerViewModel(application: Application) : AndroidViewModel(application)
     init {
         val dao = AppDatabase.getDatabase(application).scanResultDao()
         repository = ScanRepository(dao)
+        initializeToneGenerator()
+    }
+
+    private fun initializeToneGenerator() {
+        try {
+            toneGenerator = ToneGenerator(AudioManager.STREAM_NOTIFICATION, 100)
+        } catch (e: Exception) {
+            // Handle initialization failure silently
+        }
     }
 
     fun onQRCodeDetected(content: String, type: String) {
@@ -56,12 +70,29 @@ class ScannerViewModel(application: Application) : AndroidViewModel(application)
                 
                 // Provide feedback
                 provideHapticFeedback()
+                playBeepSound()
             } catch (e: Exception) {
                 _state.value = _state.value.copy(
                     error = "Failed to save scan: ${e.message}"
                 )
             }
         }
+    }
+
+    private fun playBeepSound() {
+        if (_state.value.isSoundEnabled) {
+            try {
+                toneGenerator?.startTone(ToneGenerator.TONE_PROP_BEEP, 150)
+            } catch (e: Exception) {
+                // Handle any potential tone generator errors silently
+            }
+        }
+    }
+
+    fun toggleSound() {
+        _state.value = _state.value.copy(
+            isSoundEnabled = !_state.value.isSoundEnabled
+        )
     }
 
     fun clearLastScannedCode() {
@@ -94,5 +125,11 @@ class ScannerViewModel(application: Application) : AndroidViewModel(application)
             @Suppress("DEPRECATION")
             vibrator.vibrate(100)
         }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        toneGenerator?.release()
+        toneGenerator = null
     }
 } 
