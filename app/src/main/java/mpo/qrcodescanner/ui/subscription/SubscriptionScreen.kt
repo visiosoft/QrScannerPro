@@ -7,9 +7,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -17,6 +15,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import kotlinx.coroutines.delay
 import mpo.qrcodescanner.billing.BillingViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -27,6 +26,19 @@ fun SubscriptionScreen(
 ) {
     val context = LocalContext.current
     val isPremium by billingViewModel.isPremium.collectAsState()
+    val error by billingViewModel.error.collectAsState()
+    var showSnackbar by remember { mutableStateOf(false) }
+    var snackbarMessage by remember { mutableStateOf("") }
+
+    LaunchedEffect(error) {
+        error?.let {
+            snackbarMessage = it
+            showSnackbar = true
+            delay(3000)
+            showSnackbar = false
+            billingViewModel.clearError()
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -41,6 +53,15 @@ fun SubscriptionScreen(
                     }
                 }
             )
+        },
+        snackbarHost = {
+            if (showSnackbar) {
+                Snackbar(
+                    modifier = Modifier.padding(16.dp)
+                ) {
+                    Text(snackbarMessage)
+                }
+            }
         }
     ) { paddingValues ->
         Column(
@@ -81,7 +102,14 @@ fun SubscriptionScreen(
                         "Advanced analytics",
                         "Priority support"
                     ),
-                    onClick = { billingViewModel.purchaseMonthlySubscription(context as android.app.Activity) }
+                    onClick = { 
+                        try {
+                            billingViewModel.purchaseMonthlySubscription(context as android.app.Activity)
+                        } catch (e: Exception) {
+                            snackbarMessage = "Error: ${e.message}"
+                            showSnackbar = true
+                        }
+                    }
                 )
 
                 SubscriptionCard(
@@ -92,7 +120,14 @@ fun SubscriptionScreen(
                         "Save 58% compared to monthly",
                         "Exclusive yearly member benefits"
                     ),
-                    onClick = { billingViewModel.purchaseYearlySubscription(context as android.app.Activity) }
+                    onClick = { 
+                        try {
+                            billingViewModel.purchaseYearlySubscription(context as android.app.Activity)
+                        } catch (e: Exception) {
+                            snackbarMessage = "Error: ${e.message}"
+                            showSnackbar = true
+                        }
+                    }
                 )
 
                 SubscriptionCard(
@@ -103,13 +138,27 @@ fun SubscriptionScreen(
                         "One-time payment",
                         "Best value for long-term use"
                     ),
-                    onClick = { billingViewModel.purchaseLifetime(context as android.app.Activity) }
+                    onClick = { 
+                        try {
+                            billingViewModel.purchaseLifetime(context as android.app.Activity)
+                        } catch (e: Exception) {
+                            snackbarMessage = "Error: ${e.message}"
+                            showSnackbar = true
+                        }
+                    }
                 )
 
                 HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
 
                 OutlinedButton(
-                    onClick = { billingViewModel.purchaseRemoveAds(context as android.app.Activity) },
+                    onClick = { 
+                        try {
+                            billingViewModel.purchaseRemoveAds(context as android.app.Activity)
+                        } catch (e: Exception) {
+                            snackbarMessage = "Error: ${e.message}"
+                            showSnackbar = true
+                        }
+                    },
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text("Remove Ads Only - $2.99")
