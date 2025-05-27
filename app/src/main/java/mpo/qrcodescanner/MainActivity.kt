@@ -1,6 +1,7 @@
 package mpo.qrcodescanner
 
 import android.Manifest
+import android.content.pm.PackageManager
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -58,7 +59,13 @@ class MainActivity : ComponentActivity() {
                     NavHost(navController = navController, startDestination = "home") {
                         composable("home") {
                             HomeScreen(
-                                onScanClick = { navController.navigate("scanner") },
+                                onScanClick = { 
+                                    if (checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+                                        navController.navigate("scanner")
+                                    } else {
+                                        requestPermissionLauncher.launch(Manifest.permission.CAMERA)
+                                    }
+                                },
                                 onHistoryClick = { navController.navigate("history") },
                                 onPremiumClick = { navController.navigate("subscription") },
                                 onSettingsClick = { navController.navigate("settings") }
