@@ -131,7 +131,7 @@ fun HomeScreen(
                 factory = { context ->
                     AdView(context).apply {
                         setAdSize(AdSize.BANNER)
-                        adUnitId = "ca-app-pub-3940256099942544/6300978111" // Test ad unit ID
+                        adUnitId = "ca-app-pub-9773068853653447/9784309457" // Test ad unit ID
                         loadAd(AdRequest.Builder().build())
                     }
                 },
